@@ -3,64 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>주차 위치 기록</title>
+    <title>Smart Parking</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <style>
-        body { font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100-vh; margin: 0; background-color: #f4f7f6; }
-        .container { width: 90%; max-width: 400px; text-align: center; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { color: #333; margin-bottom: 5px; }
-        #last-spot { font-size: 1.5rem; font-weight: bold; color: #007AFF; margin: 20px 0; padding: 15px; border-radius: 12px; background: #eef6ff; }
-        .time { font-size: 0.8rem; color: #888; margin-bottom: 20px; }
-        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 20px 10px; font-size: 1rem; border: none; border-radius: 12px; background-color: #f0f0f0; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
-        button:active { background-color: #007AFF; color: white; transform: scale(0.95); }
-        .footer { margin-top: 20px; font-size: 0.7rem; color: #ccc; }
+        :root {
+            --primary: #007AFF;
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-sub: #a0a0a0;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text-main);
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 20px; margin: 0; min-height: 100vh;
+        }
+
+        /* 현황판 카드 */
+        .card { 
+            width: 100%; max-width: 400px; 
+            background: var(--card-bg); 
+            border-radius: 24px; padding: 24px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            margin-bottom: 30px;
+            box-sizing: border-box;
+        }
+
+        h2 { font-size: 1.1rem; margin-top: 0; color: var(--text-sub); letter-spacing: -0.5px; margin-bottom: 20px; }
+
+        .car-status { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 16px; background: rgba(255,255,255,0.05); 
+            border-radius: 16px; margin-bottom: 12px;
+        }
+
+        .car-info { display: flex; align-items: center; gap: 12px; }
+        .brand-logo { width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        .car-name { font-weight: 600; font-size: 1.05rem; }
+
+        .spot-display { text-align: right; }
+        .spot-info { color: var(--primary); font-weight: 700; font-size: 1.1rem; display: block; }
+        .time-info { font-size: 0.75rem; color: var(--text-sub); margin-top: 4px; display: block; }
+
+        /* 선택 영역 */
+        .selection-area { width: 100%; max-width: 400px; }
+        .section-title { font-size: 0.9rem; font-weight: 600; color: var(--text-sub); margin-bottom: 15px; margin-left: 5px; }
+
+        .car-selector { display: flex; gap: 12px; margin-bottom: 25px; }
+        .car-btn { 
+            flex: 1; padding: 16px; border: 2px solid transparent; 
+            border-radius: 18px; background: var(--card-bg); color: var(--text-sub);
+            font-weight: 700; cursor: pointer; display: flex; flex-direction: column; 
+            align-items: center; gap: 8px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .car-btn.active { 
+            border-color: var(--primary); background: rgba(0, 122, 255, 0.1); color: var(--text-main);
+            transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 122, 255, 0.3);
+        }
+
+        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .spot-btn { 
+            padding: 22px 10px; font-size: 1rem; font-weight: 600; border: none; 
+            border-radius: 18px; background-color: #2c2c2e; color: white; 
+            cursor: pointer; transition: all 0.2s;
+        }
+        .spot-btn:active { background-color: var(--primary); transform: scale(0.92); }
+
+        .footer { margin-top: auto; padding: 30px 0 10px; font-size: 0.75rem; color: #444; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🚗 내 주차 위치</h2>
-    <div id="last-spot">기록 없음</div>
-    <div id="last-time" class="time">-</div>
-
-    <div class="button-grid">
-        <button onclick="saveSpot('지하 2층 - 분리수거장')">B2 분리수거</button>
-        <button onclick="saveSpot('지하 2층 - 정문쪽')">B2 정문</button>
-        <button onclick="saveSpot('지하 3층')">B3</button>
-        <button onclick="saveSpot('지하 4층')">B4</button>
+<div class="card">
+    <h2>LAST PARKING</h2>
+    <div class="car-status">
+        <div class="car-info">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Benz_logo%2C_2010.svg/2048px-Mercedes-Benz_logo%2C_2010.svg.png" class="brand-logo">
+            <span class="car-name">벤츠</span>
+        </div>
+        <div class="spot-display">
+            <span id="status-benz" class="spot-info">미등록</span>
+            <span id="time-benz" class="time-info">-</span>
+        </div>
     </div>
-    
-    <div class="footer">데이터는 기기에 안전하게 저장됩니다.</div>
+    <div class="car-status">
+        <div class="car-info">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/KIA_logo2.svg" class="brand-logo">
+            <span class="car-name">쏘렌토</span>
+        </div>
+        <div class="spot-display">
+            <span id="status-sorento" class="spot-info">미등록</span>
+            <span id="time-sorento" class="time-info">-</span>
+        </div>
+    </div>
 </div>
 
+<div class="selection-area">
+    <div class="section-title">차량 선택</div>
+    <div class="car-selector">
+        <button id="btn-benz" class="car-btn active" onclick="selectCar('benz')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Benz_logo%2C_2010.svg/2048px-Mercedes-Benz_logo%2C_2010.svg.png" class="brand-logo">
+            BENZ
+        </button>
+        <button id="btn-sorento" class="car-btn" onclick="selectCar('sorento')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/KIA_logo2.svg" class="brand-logo">
+            SORENTO
+        </button>
+    </div>
+
+    <div class="section-title">위치 기록</div>
+    <div class="button-grid">
+        <button class="spot-btn" onclick="saveSpot('B2-분리수거')">B2 분리수거</button>
+        <button class="spot-btn" onclick="saveSpot('B2-정문쪽')">B2 정문</button>
+        <button class="spot-btn" onclick="saveSpot('지하 3층')">B3층</button>
+        <button class="spot-btn" onclick="saveSpot('지하 4층')">B4층</button>
+    </div>
+</div>
+
+<div class="footer">Smart Parking System v2.0</div>
+
 <script>
-    // 페이지 로드 시 기존 기록 불러오기
+    let currentCar = 'benz';
+
     window.onload = function() {
-        const savedSpot = localStorage.getItem('parking_spot');
-        const savedTime = localStorage.getItem('parking_time');
-        if (savedSpot) {
-            document.getElementById('last-spot').innerText = savedSpot;
-            document.getElementById('last-time').innerText = savedTime + " 기록됨";
+        loadData('benz');
+        loadData('sorento');
+    }
+
+    function selectCar(car) {
+        currentCar = car;
+        document.getElementById('btn-benz').classList.remove('active');
+        document.getElementById('btn-sorento').classList.remove('active');
+        document.getElementById('btn-' + car).classList.add('active');
+    }
+
+    function loadData(car) {
+        const spot = localStorage.getItem('parking_spot_' + car);
+        const time = localStorage.getItem('parking_time_' + car);
+        if (spot) {
+            document.getElementById('status-' + car).innerText = spot;
+            document.getElementById('status-' + car).style.color = "#007AFF";
+            document.getElementById('time-' + car).innerText = time;
         }
     }
 
-    // 위치 저장 함수
-    function saveSpot(name) {
+    function saveSpot(spotName) {
         const now = new Date();
-        const timeStr = (now.getMonth() + 1) + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
+        const timeStr = (now.getMonth() + 1) + "월 " + now.getDate() + "일 " + now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
         
-        // LocalStorage에 저장
-        localStorage.setItem('parking_spot', name);
-        localStorage.setItem('parking_time', timeStr);
+        localStorage.setItem('parking_spot_' + currentCar, spotName);
+        localStorage.setItem('parking_time_' + currentCar, timeStr);
 
-        // 화면 업데이트
-        document.getElementById('last-spot').innerText = name;
-        document.getElementById('last-time').innerText = timeStr + " 기록됨";
+        loadData(currentCar);
 
-        // 간단한 진동 피드백 (지원되는 기기에서)
-        if (navigator.vibrate) navigator.vibrate(50);
+        if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
     }
 </script>
 
