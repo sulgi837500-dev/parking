@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>주차 위치 기록</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        body { font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100-vh; margin: 0; background-color: #f4f7f6; }
+        .container { width: 90%; max-width: 400px; text-align: center; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-bottom: 5px; }
+        #last-spot { font-size: 1.5rem; font-weight: bold; color: #007AFF; margin: 20px 0; padding: 15px; border-radius: 12px; background: #eef6ff; }
+        .time { font-size: 0.8rem; color: #888; margin-bottom: 20px; }
+        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { padding: 20px 10px; font-size: 1rem; border: none; border-radius: 12px; background-color: #f0f0f0; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        button:active { background-color: #007AFF; color: white; transform: scale(0.95); }
+        .footer { margin-top: 20px; font-size: 0.7rem; color: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🚗 내 주차 위치</h2>
+    <div id="last-spot">기록 없음</div>
+    <div id="last-time" class="time">-</div>
+
+    <div class="button-grid">
+        <button onclick="saveSpot('지하 2층 - 분리수거장')">B2 분리수거</button>
+        <button onclick="saveSpot('지하 2층 - 정문쪽')">B2 정문</button>
+        <button onclick="saveSpot('지하 3층')">B3</button>
+        <button onclick="saveSpot('지하 4층')">B4</button>
+    </div>
+    
+    <div class="footer">데이터는 기기에 안전하게 저장됩니다.</div>
+</div>
+
+<script>
+    // 페이지 로드 시 기존 기록 불러오기
+    window.onload = function() {
+        const savedSpot = localStorage.getItem('parking_spot');
+        const savedTime = localStorage.getItem('parking_time');
+        if (savedSpot) {
+            document.getElementById('last-spot').innerText = savedSpot;
+            document.getElementById('last-time').innerText = savedTime + " 기록됨";
+        }
+    }
+
+    // 위치 저장 함수
+    function saveSpot(name) {
+        const now = new Date();
+        const timeStr = (now.getMonth() + 1) + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
+        
+        // LocalStorage에 저장
+        localStorage.setItem('parking_spot', name);
+        localStorage.setItem('parking_time', timeStr);
+
+        // 화면 업데이트
+        document.getElementById('last-spot').innerText = name;
+        document.getElementById('last-time').innerText = timeStr + " 기록됨";
+
+        // 간단한 진동 피드백 (지원되는 기기에서)
+        if (navigator.vibrate) navigator.vibrate(50);
+    }
+</script>
+
+</body>
+</html>
